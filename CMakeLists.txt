@@ -14,6 +14,8 @@ add_cfe_app(ds ${APP_SRC_FILES})
 # This permits direct access to public headers in the fsw/inc directory
 target_include_directories(ds PUBLIC fsw/inc)
 
+include_directories(${APPLICATION_PLATFORM_INC_LIST})
+
 set(APP_TABLE_FILES
   fsw/tables/ds_filter_tbl.c
   fsw/tables/ds_file_tbl.c
