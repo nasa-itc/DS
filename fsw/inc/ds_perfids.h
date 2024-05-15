@@ -19,20 +19,17 @@
 
 /**
  * @file
- *  The CFS Data Storage (DS) Application header file containing version number
+ *  Define DS Performance IDs
  */
-#ifndef DS_VERSION_H
-#define DS_VERSION_H
+#ifndef DS_PERFIDS_H
+#define DS_PERFIDS_H
 
 /**
- * \defgroup cfsdsversion CFS Data Storage Version
- * \ref cfsversions
+ * \defgroup cfsdsmissioncfg CFS Data Storage Mission Configuration
  * \{
  */
 
-#define DS_MAJOR_VERSION 2  /**< \brief Major version number */
-#define DS_MINOR_VERSION 6  /**< \brief Minor version number */
-#define DS_REVISION      99 /**< \brief Revision number */
+#define DS_APPMAIN_PERF_ID 38 /**< \brief Main application performance ID */
 
 /**\}*/
 

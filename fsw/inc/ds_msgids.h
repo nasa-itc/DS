@@ -19,20 +19,29 @@
 
 /**
  * @file
- *  The CFS Data Storage (DS) Application header file containing version number
+ *  The CFS Data Storage (DS) Application Message IDs header file
  */
-#ifndef DS_VERSION_H
-#define DS_VERSION_H
+#ifndef DS_MSGIDS_H
+#define DS_MSGIDS_H
 
 /**
- * \defgroup cfsdsversion CFS Data Storage Version
- * \ref cfsversions
+ * \defgroup cfsdscmdmid CFS Data Storage Message IDs
  * \{
  */
 
-#define DS_MAJOR_VERSION 2  /**< \brief Major version number */
-#define DS_MINOR_VERSION 6  /**< \brief Minor version number */
-#define DS_REVISION      99 /**< \brief Revision number */
+#define DS_CMD_MID     0x18BB /**< \brief DS Ground Commands Message ID */
+#define DS_SEND_HK_MID 0x18BC /**< \brief DS Send Hk Data Cmd Message ID*/
+
+/**\}*/
+
+/**
+ * \defgroup cfsdstlmmid CFS Data Storage Message IDs
+ * \{
+ */
+
+#define DS_HK_TLM_MID   0x08B8 /**< \brief DS Hk Telemetry Message ID ****/
+#define DS_DIAG_TLM_MID 0x08B9 /**< \brief DS File Info Telemetry Message ID ****/
+#define DS_COMP_TLM_MID 0x08BA /**< \brief DS Completed File Info Telemetry Message ID ****/
 
 /**\}*/
 

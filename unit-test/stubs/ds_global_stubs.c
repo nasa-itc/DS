@@ -19,33 +19,20 @@
 
 /**
  * @file
- *  The CFS Data Storage (DS) Application header file
+ *  Unit testing stubs for the ds_app.c file.
  */
-#ifndef DS_APPDEFS_H
-#define DS_APPDEFS_H
+
+#include "ds_app.h"
+
+/* UT includes */
+#include "uttest.h"
+#include "utassert.h"
+#include "utstubs.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* DS common application macro definitions                         */
+/* Application global data structure                               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define DS_CLOSED 0 /**< \brief File is closed */
-#define DS_OPEN   1 /**< \brief File is open */
-
-#define DS_STRING_REQUIRED true  /**< \brief String text is required */
-#define DS_STRING_OPTIONAL false /**< \brief String text is optional */
-
-#define DS_FILENAME_TEXT    true  /**< \brief String text is part of a filename */
-#define DS_DESCRIPTIVE_TEXT false /**< \brief String text is not part of a filename */
-
-#define DS_INDEX_NONE -1 /**< \brief Packet filter table look-up = not found */
-
-#define DS_PATH_SEPARATOR '/' /**< \brief File system path separator */
-
-#define DS_TABLE_VERIFY_ERR 0xFFFFFFFF /**< \brief Table verification error return value */
-
-#define DS_FILE_HEADER_NONE 0 /**< \brief File header type is NONE */
-#define DS_FILE_HEADER_CFE  1 /**< \brief File header type is CFE */
-
-#endif
+DS_AppData_t DS_AppData;

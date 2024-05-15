@@ -1,30 +1,27 @@
 /************************************************************************
-** File: ds_app.c 
-**
-**  NASA Docket No. GSC-18448-1, and identified as "cFS Data Storage (DS) 
-**  application version 2.5.2” 
-**  
-**  Copyright © 2019 United States Government as represented by the Administrator 
-**  of the National Aeronautics and Space Administration.  All Rights Reserved. 
-**
-**  Licensed under the Apache License, Version 2.0 (the "License"); 
-**  you may not use this file except in compliance with the License. 
-**  You may obtain a copy of the License at 
-**  http://www.apache.org/licenses/LICENSE-2.0 
-**  Unless required by applicable law or agreed to in writing, software 
-**  distributed under the License is distributed on an "AS IS" BASIS, 
-**  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-**  See the License for the specific language governing permissions and 
-**  limitations under the License. 
-**  
-**
-** Purpose:
-**  The CFS Data Storage (DS) Application file containing the application
-**  initialization routines, the main routine and the command interface.
-**
-** Notes:
-**
-*************************************************************************/
+ * NASA Docket No. GSC-18,917-1, and identified as “CFS Data Storage
+ * (DS) application version 2.6.1”
+ *
+ * Copyright (c) 2021 United States Government as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ************************************************************************/
+
+/**
+ * @file
+ *  The CFS Data Storage (DS) Application file containing the application
+ *  initialization routines, the main routine and the command interface.
+ */
 
 #include "cfe.h"
 
@@ -38,6 +35,7 @@
 
 #include "ds_msg.h"
 #include "ds_app.h"
+#include "ds_dispatch.h"
 #include "ds_cmds.h"
 #include "ds_file.h"
 #include "ds_table.h"
@@ -45,29 +43,27 @@
 #include "ds_msgdefs.h"
 #include "ds_version.h"
 
-#include "string.h"
-
+#include <stdio.h>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* DS_AppData -- application global data structure                 */
+/* Application global data structure                               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 DS_AppData_t DS_AppData;
 
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* DS_AppMain() -- application entry point and main process loop   */
+/* Application entry point and main process loop                   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void DS_AppMain(void)
 {
-    CFE_SB_MsgPtr_t MessagePtr = NULL;
-    int32 Result = CFE_SUCCESS;
-    uint32 RunStatus = CFE_ES_RunStatus_APP_RUN;
+    CFE_SB_Buffer_t *BufPtr = NULL;
+    int32            Result;
+    uint32           RunStatus = CFE_ES_RunStatus_APP_RUN;
 
     /*
     ** Performance Log (start time counter)...
@@ -75,17 +71,9 @@ void DS_AppMain(void)
     CFE_ES_PerfLogEntry(DS_APPMAIN_PERF_ID);
 
     /*
-    ** Register application...
+    ** Perform application-specific initialization...
     */
-    Result = CFE_ES_RegisterApp();
-
-    /*
-    ** Perform application specific initialization...
-    */
-    if (Result == CFE_SUCCESS)
-    {
-        Result = DS_AppInitialize();
-    }
+    Result = DS_AppInitialize();
 
     /*
     ** Check for start-up error...
@@ -111,7 +99,7 @@ void DS_AppMain(void)
         /*
         ** Wait for next Software Bus message...
         */
-        Result = CFE_SB_RcvMsg(&MessagePtr, DS_AppData.InputPipe, CFE_SB_PEND_FOREVER);
+        Result = CFE_SB_ReceiveBuffer(&BufPtr, DS_AppData.CmdPipe, DS_SB_TIMEOUT);
 
         /*
         ** Performance Log (start time counter)...
@@ -123,7 +111,18 @@ void DS_AppMain(void)
         */
         if (Result == CFE_SUCCESS)
         {
-            DS_AppProcessMsg(MessagePtr);
+            DS_AppProcessMsg(BufPtr);
+        }
+        else if (Result == CFE_SB_TIME_OUT)
+        {
+            /*
+             * Check for table updates.  This is usually done during the
+             * housekeeping cycle, but if housekeeping requests are
+             * coming at a rate slower than 1Hz, we perform the operations
+             * here.
+             */
+            DS_TableManageDestFile();
+            DS_TableManageFilter();
         }
         else
         {
@@ -148,8 +147,8 @@ void DS_AppMain(void)
         /*
         ** Send an event describing the reason for the termination...
         */
-        CFE_EVS_SendEvent(DS_EXIT_ERR_EID, CFE_EVS_EventType_CRITICAL,
-                         "Application terminating, err = 0x%08X", (unsigned int)Result);
+        CFE_EVS_SendEvent(DS_EXIT_ERR_EID, CFE_EVS_EventType_CRITICAL, "Application terminating, err = 0x%08X",
+                          (unsigned int)Result);
 
         /*
         ** In case cFE Event Services is not working...
@@ -166,61 +165,50 @@ void DS_AppMain(void)
     ** Let cFE kill the application (and any child tasks)...
     */
     CFE_ES_ExitApp(RunStatus);
-
-} /* End of DS_AppMain() */
-
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* DS_AppInitialize() -- application initialization                */
+/* Application initialization                                      */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int32 DS_AppInitialize(void)
+CFE_Status_t DS_AppInitialize(void)
 {
-    int32 Result = CFE_SUCCESS;
-    int32 i = 0;
+    CFE_Status_t Result;
+    int32        i = 0;
 
     /*
     ** Initialize global data structure...
     */
-    CFE_PSP_MemSet(&DS_AppData, 0, sizeof(DS_AppData_t));
+    memset(&DS_AppData, 0, sizeof(DS_AppData));
 
     DS_AppData.AppEnableState = DS_DEF_ENABLE_STATE;
 
     /*
-    ** Mark files as closed (cFE uses zero as a valid file handle)...
+    ** Mark files as closed
     */
     for (i = 0; i < DS_DEST_FILE_CNT; i++)
     {
-        DS_AppData.FileStatus[i].FileHandle = DS_CLOSED_FILE_HANDLE;
+        DS_AppData.FileStatus[i].FileHandle = OS_OBJECT_ID_UNDEFINED;
     }
 
     /*
     ** Initialize interface to cFE Event Services...
     */
-    if (Result == CFE_SUCCESS)
-    {
-        Result = CFE_EVS_Register(NULL, 0, 0);
+    Result = CFE_EVS_Register(NULL, 0, 0);
 
-        if (Result != CFE_SUCCESS)
-        {
-            CFE_EVS_SendEvent(DS_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
-               "Unable to register for EVS services, err = 0x%08X", (unsigned int)Result);
-        }
+    if (Result != CFE_SUCCESS)
+    {
+        CFE_ES_WriteToSysLog("DS App: Error registering for Event Services, RC = 0x%08X\n", (unsigned int)Result);
     }
-
-    /*
-    ** Create application Software Bus message pipe...
-    */
-    if (Result == CFE_SUCCESS)
+    else
     {
-        Result = CFE_SB_CreatePipe(&DS_AppData.InputPipe,
-                                    DS_APP_PIPE_DEPTH, DS_APP_PIPE_NAME);
+        Result = CFE_SB_CreatePipe(&DS_AppData.CmdPipe, DS_APP_PIPE_DEPTH, DS_APP_PIPE_NAME);
         if (Result != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(DS_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
-               "Unable to create input pipe, err = 0x%08X", (unsigned int)Result);
+            CFE_EVS_SendEvent(DS_INIT_ERR_EID, CFE_EVS_EventType_ERROR, "Unable to create input pipe, err = 0x%08X",
+                              (unsigned int)Result);
         }
     }
 
@@ -229,12 +217,12 @@ int32 DS_AppInitialize(void)
     */
     if (Result == CFE_SUCCESS)
     {
-        Result = CFE_SB_Subscribe(DS_SEND_HK_MID, DS_AppData.InputPipe);
+        Result = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(DS_SEND_HK_MID), DS_AppData.CmdPipe);
 
         if (Result != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(DS_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
-               "Unable to subscribe to HK request, err = 0x%08X", (unsigned int)Result);
+                              "Unable to subscribe to HK request, err = 0x%08X", (unsigned int)Result);
         }
     }
 
@@ -243,12 +231,12 @@ int32 DS_AppInitialize(void)
     */
     if (Result == CFE_SUCCESS)
     {
-        Result = CFE_SB_Subscribe(DS_CMD_MID, DS_AppData.InputPipe);
+        Result = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(DS_CMD_MID), DS_AppData.CmdPipe);
 
         if (Result != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(DS_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
-               "Unable to subscribe to DS commands, err = 0x%08X", (unsigned int)Result);
+                              "Unable to subscribe to DS commands, err = 0x%08X", (unsigned int)Result);
         }
     }
 
@@ -274,250 +262,35 @@ int32 DS_AppInitialize(void)
     if (Result == CFE_SUCCESS)
     {
         CFE_EVS_SendEvent(DS_INIT_EID, CFE_EVS_EventType_INFORMATION,
-                         "Application initialized, version %d.%d.%d.%d, data at %p",
-                          DS_MAJOR_VERSION, DS_MINOR_VERSION,
-                          DS_REVISION, DS_MISSION_REV, (void*)&DS_AppData);
+                          "Application initialized, version %d.%d.%d.%d, data at %p", DS_MAJOR_VERSION,
+                          DS_MINOR_VERSION, DS_REVISION, DS_MISSION_REV, (void *)&DS_AppData);
     }
 
-    return(Result);
-
-} /* End of DS_AppInitialize() */
-
+    return Result;
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* DS_AppProcessMsg() -- process Software Bus messages             */
+/* Process HK request command                                      */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void DS_AppProcessMsg(CFE_SB_MsgPtr_t MessagePtr)
+void DS_AppSendHkCmd(void)
 {
-    CFE_SB_MsgId_t MessageID = CFE_SB_GetMsgId(MessagePtr);
-    uint16 ActualLength = 0;
-    uint16 ExpectedLength = 0;
-
-    switch (MessageID)
-    {
-        /*
-        ** DS application commands...
-        */
-        case DS_CMD_MID:
-            DS_AppProcessCmd(MessagePtr);
-            if (DS_TableFindMsgID(MessageID) != DS_INDEX_NONE)
-            {
-                DS_AppStorePacket(MessageID, MessagePtr);
-            }
-            break;
-
-        /*
-        ** DS housekeeping request command...
-        */
-        case DS_SEND_HK_MID:
-
-            ActualLength = CFE_SB_GetTotalMsgLength(MessagePtr);
-            ExpectedLength = CFE_SB_CMD_HDR_SIZE;
-            if (ExpectedLength != ActualLength)
-            {
-                CFE_EVS_SendEvent(DS_HK_REQUEST_ERR_EID, CFE_EVS_EventType_ERROR,
-                   "Invalid HK request length: expected = %d, actual = %d",
-                    ExpectedLength, ActualLength);
-            }
-            else
-            {
-                DS_AppProcessHK();
-                if (DS_TableFindMsgID(MessageID) != DS_INDEX_NONE)
-                {
-                    DS_AppStorePacket(MessageID, MessagePtr);
-                }
-            }
-            break;
-
-        /*
-        ** Unknown message ID's (must be something to store)...
-        */
-        default:
-            DS_AppStorePacket(MessageID, MessagePtr);
-            break;
-    }
-
-    return;
-
-} /* End of DS_AppProcessMsg() */
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-/*                                                                 */
-/* DS_AppProcessCmd() -- process application commands              */
-/*                                                                 */
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-void DS_AppProcessCmd(CFE_SB_MsgPtr_t MessagePtr)
-{
-    uint16 CommandCode  = CFE_SB_GetCmdCode(MessagePtr);
-
-    switch (CommandCode)
-    {
-        /*
-        ** Do nothing command (aliveness test)...
-        */
-        case DS_NOOP_CC:
-            DS_CmdNoop(MessagePtr);
-            break;
-
-        /*
-        ** Set housekeeping telemetry counters to zero...
-        */
-        case DS_RESET_CC:
-            DS_CmdReset(MessagePtr);
-            break;
-
-        /*
-        ** Set DS application enable/disable state...
-        */
-        case DS_SET_APP_STATE_CC:
-            DS_CmdSetAppState(MessagePtr);
-            break;
-
-        /*
-        ** Set packet filter file index...
-        */
-        case DS_SET_FILTER_FILE_CC:
-            DS_CmdSetFilterFile(MessagePtr);
-            break;
-
-        /*
-        ** Set packet filter type (time vs count)...
-        */
-        case DS_SET_FILTER_TYPE_CC:
-            DS_CmdSetFilterType(MessagePtr);
-            break;
-
-        /*
-        ** Set packet filter algorithm parameters...
-        */
-        case DS_SET_FILTER_PARMS_CC:
-            DS_CmdSetFilterParms(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file filename type (time vs count)...
-        */
-        case DS_SET_DEST_TYPE_CC:
-            DS_CmdSetDestType(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file enable/disable state...
-        */
-        case DS_SET_DEST_STATE_CC:
-            DS_CmdSetDestState(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file path portion of filename...
-        */
-        case DS_SET_DEST_PATH_CC:
-            DS_CmdSetDestPath(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file base portion of filename...
-        */
-        case DS_SET_DEST_BASE_CC:
-            DS_CmdSetDestBase(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file extension portion of filename...
-        */
-        case DS_SET_DEST_EXT_CC:
-            DS_CmdSetDestExt(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file maximum size limit...
-        */
-        case DS_SET_DEST_SIZE_CC:
-            DS_CmdSetDestSize(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file maximum age limit...
-        */
-        case DS_SET_DEST_AGE_CC:
-            DS_CmdSetDestAge(MessagePtr);
-            break;
-
-        /*
-        ** Set destination file sequence count portion of filename...
-        */
-        case DS_SET_DEST_COUNT_CC:
-            DS_CmdSetDestCount(MessagePtr);
-            break;
-
-        /*
-        ** Close destination file (next packet will re-open)...
-        */
-        case DS_CLOSE_FILE_CC:
-            DS_CmdCloseFile(MessagePtr);
-            break;
-
-        /*
-        ** Get file info telemetry packet...
-        */
-        case DS_GET_FILE_INFO_CC:
-            DS_CmdGetFileInfo(MessagePtr);
-            break;
-
-        /*
-        ** Add message ID to filter table...
-        */
-        case DS_ADD_MID_CC:
-            DS_CmdAddMID(MessagePtr);
-            break;
-
-        /*
-        ** Close all destination files (next packet will re-open)...
-        */
-        case DS_CLOSE_ALL_CC:
-            DS_CmdCloseAll(MessagePtr);
-            break;
-
-        /*
-        ** DS application command with unknown command code...
-        */
-        default:
-            CFE_EVS_SendEvent(DS_CMD_CODE_ERR_EID, CFE_EVS_EventType_ERROR,
-                             "Invalid command code: MID = 0x%04X, CC = %d",
-                              DS_CMD_MID, CommandCode);
-
-            DS_AppData.CmdRejectedCounter++;
-            break;
-    }
-
-    return;
-
-} /* End of DS_AppProcessCmd() */
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-/*                                                                 */
-/* DS_AppProcessHK() -- process hk request command                 */
-/*                                                                 */
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-void DS_AppProcessHK(void)
-{
-    DS_HkPacket_t HkPacket;
-    int32 i = 0;
-    int32 Status = 0;
-    char FilterTblName[CFE_MISSION_TBL_MAX_NAME_LENGTH] = {0};
+    DS_HkPacket_t  HkPacket;
+    int32          i                                              = 0;
+    CFE_Status_t   Status                                         = 0;
+    char           FilterTblName[CFE_MISSION_TBL_MAX_NAME_LENGTH] = {0};
     CFE_TBL_Info_t FilterTblInfo;
+
+    DS_HkTlm_Payload_t *PayloadPtr;
+
+    memset(&HkPacket, 0, sizeof(HkPacket));
 
     /*
     ** Initialize housekeeping packet...
     */
-    CFE_SB_InitMsg(&HkPacket, DS_HK_TLM_MID, sizeof(DS_HkPacket_t), true);
+    CFE_MSG_Init(CFE_MSG_PTR(HkPacket.TelemetryHeader), CFE_SB_ValueToMsgId(DS_HK_TLM_MID), sizeof(DS_HkPacket_t));
 
     /*
     ** Process data storage file age limits...
@@ -530,103 +303,98 @@ void DS_AppProcessHK(void)
     DS_TableManageDestFile();
     DS_TableManageFilter();
 
+    /* Get internal payload substructure */
+    PayloadPtr = &HkPacket.Payload;
+
     /*
     ** Copy application command counters to housekeeping telemetry packet...
     */
-    HkPacket.CmdAcceptedCounter = DS_AppData.CmdAcceptedCounter;
-    HkPacket.CmdRejectedCounter = DS_AppData.CmdRejectedCounter;
+    PayloadPtr->CmdAcceptedCounter = DS_AppData.CmdAcceptedCounter;
+    PayloadPtr->CmdRejectedCounter = DS_AppData.CmdRejectedCounter;
 
     /*
     ** Copy packet storage counters to housekeeping telemetry packet...
     */
-    HkPacket.DisabledPktCounter = DS_AppData.DisabledPktCounter;
-    HkPacket.IgnoredPktCounter  = DS_AppData.IgnoredPktCounter;
-    HkPacket.FilteredPktCounter = DS_AppData.FilteredPktCounter;
-    HkPacket.PassedPktCounter   = DS_AppData.PassedPktCounter;
+    PayloadPtr->DisabledPktCounter = DS_AppData.DisabledPktCounter;
+    PayloadPtr->IgnoredPktCounter  = DS_AppData.IgnoredPktCounter;
+    PayloadPtr->FilteredPktCounter = DS_AppData.FilteredPktCounter;
+    PayloadPtr->PassedPktCounter   = DS_AppData.PassedPktCounter;
 
     /*
     ** Copy file I/O counters to housekeeping telemetry packet...
     */
-    HkPacket.FileWriteCounter     = DS_AppData.FileWriteCounter;
-    HkPacket.FileWriteErrCounter  = DS_AppData.FileWriteErrCounter;
-    HkPacket.FileUpdateCounter    = DS_AppData.FileUpdateCounter;
-    HkPacket.FileUpdateErrCounter = DS_AppData.FileUpdateErrCounter;
+    PayloadPtr->FileWriteCounter     = DS_AppData.FileWriteCounter;
+    PayloadPtr->FileWriteErrCounter  = DS_AppData.FileWriteErrCounter;
+    PayloadPtr->FileUpdateCounter    = DS_AppData.FileUpdateCounter;
+    PayloadPtr->FileUpdateErrCounter = DS_AppData.FileUpdateErrCounter;
 
     /*
     ** Copy configuration table counters to housekeeping telemetry packet...
     */
-    HkPacket.DestTblLoadCounter   = DS_AppData.DestTblLoadCounter;
-    HkPacket.DestTblErrCounter    = DS_AppData.DestTblErrCounter;
-    HkPacket.FilterTblLoadCounter = DS_AppData.FilterTblLoadCounter;
-    HkPacket.FilterTblErrCounter  = DS_AppData.FilterTblErrCounter;
+    PayloadPtr->DestTblLoadCounter   = DS_AppData.DestTblLoadCounter;
+    PayloadPtr->DestTblErrCounter    = DS_AppData.DestTblErrCounter;
+    PayloadPtr->FilterTblLoadCounter = DS_AppData.FilterTblLoadCounter;
+    PayloadPtr->FilterTblErrCounter  = DS_AppData.FilterTblErrCounter;
 
     /*
     ** Copy app enable/disable state to housekeeping telemetry packet...
     */
-    HkPacket.AppEnableState = DS_AppData.AppEnableState;
+    PayloadPtr->AppEnableState = DS_AppData.AppEnableState;
 
     /*
-    ** Compute file growth rate from number of bytes since last HK request...
+    ** Compute file growth rate from the number of bytes since the last HK request...
     */
     for (i = 0; i < DS_DEST_FILE_CNT; i++)
     {
-        DS_AppData.FileStatus[i].FileRate = DS_AppData.FileStatus[i].FileGrowth / DS_SECS_PER_HK_CYCLE;
+        DS_AppData.FileStatus[i].FileRate   = DS_AppData.FileStatus[i].FileGrowth / DS_SECS_PER_HK_CYCLE;
         DS_AppData.FileStatus[i].FileGrowth = 0;
     }
 
-    /* Get the filter table info, put the file name in the hk pkt. */
-    Status = snprintf(FilterTblName, CFE_MISSION_TBL_MAX_NAME_LENGTH, "DS.%s",DS_FILTER_TBL_NAME);
-    if(Status >= 0) {
+    /* Get the filter table info, put the file name in the HK pkt. */
+    Status = snprintf(FilterTblName, CFE_MISSION_TBL_MAX_NAME_LENGTH, "DS.%s", DS_FILTER_TBL_NAME);
+    if (Status >= 0)
+    {
         Status = CFE_TBL_GetInfo(&FilterTblInfo, FilterTblName);
-        if (Status == CFE_SUCCESS) {
-            strncpy(HkPacket.FilterTblFilename, FilterTblInfo.LastFileLoaded, OS_MAX_PATH_LEN - 1);
-            HkPacket.FilterTblFilename[strlen(HkPacket.FilterTblFilename)] = '\0';
+        if (Status == CFE_SUCCESS)
+        {
+            strncpy(PayloadPtr->FilterTblFilename, FilterTblInfo.LastFileLoaded, OS_MAX_PATH_LEN - 1);
+            PayloadPtr->FilterTblFilename[OS_MAX_PATH_LEN - 1] = '\0';
         }
-        
-        else {
+        else
+        {
             /* If the filter table name is invalid, send an event and erase any
              * stale/misleading filename from the HK packet */
-            CFE_EVS_SendEvent(DS_APPHK_FILTER_TBL_ERR_EID, 
-                              CFE_EVS_EventType_ERROR,
-                              "Invalid filter tbl name in DS_AppProcessHK. Name=%s, Err=0x%08X",
-                              FilterTblName,
-                              Status);
-        
-            CFE_PSP_MemSet(HkPacket.FilterTblFilename, 0, OS_MAX_PATH_LEN);
+            CFE_EVS_SendEvent(DS_APPHK_FILTER_TBL_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "Invalid filter tbl name in DS_AppSendHkCmd. Name=%s, Err=0x%08X", FilterTblName, Status);
+
+            memset(PayloadPtr->FilterTblFilename, 0, sizeof(PayloadPtr->FilterTblFilename));
         }
     }
-    else {
+    else
+    {
         /* If the filter table name couldn't be copied, send an event and erase
          * any stale/misleading filename from the HK packet */
-        CFE_EVS_SendEvent(DS_APPHK_FILTER_TBL_PRINT_ERR_EID,
-                          CFE_EVS_EventType_ERROR,
-                          "Filter tbl name copy fail in DS_AppProcessHK. Err=%d",
-                          (int)Status);
+        CFE_EVS_SendEvent(DS_APPHK_FILTER_TBL_PRINT_ERR_EID, CFE_EVS_EventType_ERROR,
+                          "Filter tbl name copy fail in DS_AppSendHkCmd. Err=%d", (int)Status);
 
-
-        CFE_PSP_MemSet(HkPacket.FilterTblFilename, 0, OS_MAX_PATH_LEN);
+        memset(PayloadPtr->FilterTblFilename, 0, sizeof(PayloadPtr->FilterTblFilename));
     }
 
     /*
     ** Timestamp and send housekeeping telemetry packet...
     */
-    CFE_SB_TimeStampMsg((CFE_SB_Msg_t *) &HkPacket);
-    CFE_SB_SendMsg((CFE_SB_Msg_t *) &HkPacket);
-
-    return;
-
-} /* End of DS_AppProcessHK() */
-
+    CFE_SB_TimeStampMsg(CFE_MSG_PTR(HkPacket.TelemetryHeader));
+    CFE_SB_TransmitMsg(CFE_MSG_PTR(HkPacket.TelemetryHeader), true);
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* DS_AppStorePacket() -- packet storage pre-processor             */
+/* Packet storage pre-processor                                    */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void DS_AppStorePacket(CFE_SB_MsgId_t MessageID, CFE_SB_MsgPtr_t MessagePtr)
+void DS_AppStorePacket(CFE_SB_MsgId_t MessageID, const CFE_SB_Buffer_t *BufPtr)
 {
-
     if (DS_AppData.AppEnableState == DS_DISABLED)
     {
         /*
@@ -634,8 +402,8 @@ void DS_AppStorePacket(CFE_SB_MsgId_t MessageID, CFE_SB_MsgPtr_t MessagePtr)
         */
         DS_AppData.DisabledPktCounter++;
     }
-    else if ((DS_AppData.FilterTblPtr == (DS_FilterTable_t *) NULL) ||
-             (DS_AppData.DestFileTblPtr == (DS_DestFileTable_t *) NULL))
+    else if ((DS_AppData.FilterTblPtr == (DS_FilterTable_t *)NULL) ||
+             (DS_AppData.DestFileTblPtr == (DS_DestFileTable_t *)NULL))
     {
         /*
         ** Must have both tables loaded in order to store data...
@@ -647,13 +415,6 @@ void DS_AppStorePacket(CFE_SB_MsgId_t MessageID, CFE_SB_MsgPtr_t MessagePtr)
         /*
         ** Store packet (if permitted by filter table)...
         */
-        DS_FileStorePacket(MessageID, MessagePtr);
+        DS_FileStorePacket(MessageID, BufPtr);
     }
-
-    return;
-
-} /* End of DS_AppStorePacket() */
-
-/************************/
-/*  End of File Comment */
-/************************/
+}

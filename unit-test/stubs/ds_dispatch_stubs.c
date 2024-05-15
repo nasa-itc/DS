@@ -19,21 +19,33 @@
 
 /**
  * @file
- *  The CFS Data Storage (DS) Application header file containing version number
- */
-#ifndef DS_VERSION_H
-#define DS_VERSION_H
-
-/**
- * \defgroup cfsdsversion CFS Data Storage Version
- * \ref cfsversions
- * \{
+ *
+ * Auto-Generated stub implementations for functions defined in ds_dispatch header
  */
 
-#define DS_MAJOR_VERSION 2  /**< \brief Major version number */
-#define DS_MINOR_VERSION 6  /**< \brief Minor version number */
-#define DS_REVISION      99 /**< \brief Revision number */
+#include "ds_dispatch.h"
+#include "utgenstub.h"
 
-/**\}*/
+/*
+ * ----------------------------------------------------
+ * Generated stub function for DS_AppProcessCmd()
+ * ----------------------------------------------------
+ */
+void DS_AppProcessCmd(const CFE_SB_Buffer_t *BufPtr)
+{
+    UT_GenStub_AddParam(DS_AppProcessCmd, const CFE_SB_Buffer_t *, BufPtr);
 
-#endif
+    UT_GenStub_Execute(DS_AppProcessCmd, Basic, NULL);
+}
+
+/*
+ * ----------------------------------------------------
+ * Generated stub function for DS_AppProcessMsg()
+ * ----------------------------------------------------
+ */
+void DS_AppProcessMsg(const CFE_SB_Buffer_t *BufPtr)
+{
+    UT_GenStub_AddParam(DS_AppProcessMsg, const CFE_SB_Buffer_t *, BufPtr);
+
+    UT_GenStub_Execute(DS_AppProcessMsg, Basic, NULL);
+}
