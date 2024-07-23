@@ -53,7 +53,7 @@
 /* Apply common filter algorithm to Software Bus packet            */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-bool DS_IsPacketFiltered(CFE_MSG_Message_t *MessagePtr, uint16 FilterType, uint16 Algorithm_N, uint16 Algorithm_X,
+int32 DS_IsPacketFiltered(CFE_MSG_Message_t *MessagePtr, uint16 FilterType, uint16 Algorithm_N, uint16 Algorithm_X,
                          uint16 Algorithm_O)
 {
     /*
@@ -61,7 +61,7 @@ bool DS_IsPacketFiltered(CFE_MSG_Message_t *MessagePtr, uint16 FilterType, uint1
     ** Algorithm_X = out of every group of this many packets
     ** Algorithm_O = starting at this offset within the group
     */
-    bool                    PacketIsFiltered = false;
+    int32                    PacketIsFiltered = false;
     CFE_TIME_SysTime_t      PacketTime;
     uint16                  PacketValue;
     uint16                  Seconds;
@@ -188,8 +188,8 @@ void DS_FileStorePacket(CFE_SB_MsgId_t MessageID, const CFE_SB_Buffer_t *BufPtr)
 {
     DS_PacketEntry_t *PacketEntry  = NULL;
     DS_FilterParms_t *FilterParms  = NULL;
-    bool              PassedFilter = false;
-    bool              FilterResult = false;
+    int32              PassedFilter = false;
+    int32              FilterResult = false;
     int32             FilterIndex  = 0;
     int32             FileIndex    = 0;
     int32             i            = 0;
@@ -271,7 +271,7 @@ void DS_FileSetupWrite(int32 FileIndex, const CFE_SB_Buffer_t *BufPtr)
 {
     DS_DestFileEntry_t *DestFile     = &DS_AppData.DestFileTblPtr->File[FileIndex];
     DS_AppFileStatus_t *FileStatus   = &DS_AppData.FileStatus[FileIndex];
-    bool                OpenNewFile  = false;
+    int32                OpenNewFile  = false;
     size_t              PacketLength = 0;
 
     /*

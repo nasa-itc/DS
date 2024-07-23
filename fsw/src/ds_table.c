@@ -48,8 +48,8 @@ CFE_Status_t DS_TableInit(void)
 {
     CFE_Status_t Result1;
     CFE_Status_t Result2;
-    bool         NeedToLoadDestTable   = false;
-    bool         NeedToLoadFilterTable = false;
+    int32         NeedToLoadDestTable   = false;
+    int32         NeedToLoadFilterTable = false;
     uint16       TableRegisterFlags    = CFE_TBL_OPT_SNGL_BUFFER | CFE_TBL_OPT_LOAD_DUMP;
 
     if (DS_MAKE_TABLES_CRITICAL == 1)
@@ -441,10 +441,10 @@ CFE_Status_t DS_TableVerifyDestFile(const void *TableData)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableIndex, int32 ErrorCount)
+int32 DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableIndex, int32 ErrorCount)
 {
     const char *CommonErrorText = "Destination file table verify err:";
-    bool        Result          = true;
+    int32        Result          = true;
 
     /*
     ** Perform the following "per table entry" validation:
@@ -563,11 +563,11 @@ CFE_Status_t DS_TableVerifyFilter(const void *TableData)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, int32 ErrorCount)
+int32 DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, int32 ErrorCount)
 {
     const char *      CommonErrorText = "Filter table verify err:";
     DS_FilterParms_t *FilterParms;
-    bool              Result = true;
+    int32              Result = true;
     int32             i      = 0;
 
     /*
@@ -640,10 +640,10 @@ bool DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, 
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableEntryUnused(const void *TableEntry, int32 BufferSize)
+int32 DS_TableEntryUnused(const void *TableEntry, int32 BufferSize)
 {
     const char *Buffer = (char *)TableEntry;
-    bool        Result = true;
+    int32        Result = true;
     int32       i      = 0;
 
     for (i = 0; i < BufferSize; i++)
@@ -664,9 +664,9 @@ bool DS_TableEntryUnused(const void *TableEntry, int32 BufferSize)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyFileIndex(uint16 FileTableIndex)
+int32 DS_TableVerifyFileIndex(uint16 FileTableIndex)
 {
-    bool Result = true;
+    int32 Result = true;
 
     if (FileTableIndex >= DS_DEST_FILE_CNT)
     {
@@ -682,9 +682,9 @@ bool DS_TableVerifyFileIndex(uint16 FileTableIndex)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorithm_O)
+int32 DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorithm_O)
 {
-    bool Result = true;
+    int32 Result = true;
 
     /*
     ** Unused entries (all zero's) are valid
@@ -716,9 +716,9 @@ bool DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorith
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyType(uint16 TimeVsCount)
+int32 DS_TableVerifyType(uint16 TimeVsCount)
 {
-    bool Result = true;
+    int32 Result = true;
 
     if ((TimeVsCount != DS_BY_COUNT) && (TimeVsCount != DS_BY_TIME))
     {
@@ -734,9 +734,9 @@ bool DS_TableVerifyType(uint16 TimeVsCount)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyState(uint16 EnableState)
+int32 DS_TableVerifyState(uint16 EnableState)
 {
-    bool Result = true;
+    int32 Result = true;
 
     if ((EnableState != DS_ENABLED) && (EnableState != DS_DISABLED))
     {
@@ -752,9 +752,9 @@ bool DS_TableVerifyState(uint16 EnableState)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifySize(uint32 MaxFileSize)
+int32 DS_TableVerifySize(uint32 MaxFileSize)
 {
-    bool Result = true;
+    int32 Result = true;
 
     if (MaxFileSize < DS_FILE_MIN_SIZE_LIMIT)
     {
@@ -770,9 +770,9 @@ bool DS_TableVerifySize(uint32 MaxFileSize)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyAge(uint32 MaxFileAge)
+int32 DS_TableVerifyAge(uint32 MaxFileAge)
 {
-    bool Result = true;
+    int32 Result = true;
 
     if (MaxFileAge < DS_FILE_MIN_AGE_LIMIT)
     {
@@ -788,9 +788,9 @@ bool DS_TableVerifyAge(uint32 MaxFileAge)
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-bool DS_TableVerifyCount(uint32 SequenceCount)
+int32 DS_TableVerifyCount(uint32 SequenceCount)
 {
-    bool Result = true;
+    int32 Result = true;
 
     if (SequenceCount > DS_MAX_SEQUENCE_COUNT)
     {

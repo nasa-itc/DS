@@ -162,7 +162,7 @@ CFE_Status_t DS_TableVerifyDestFile(const void *TableData);
  *
  *  \sa #DS_DestFileEntry_t, #DS_TableVerifyDestFile
  */
-bool DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableIndex, int32 ErrorCount);
+int32 DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableIndex, int32 ErrorCount);
 
 /**
  *  \brief Verify packet filter table data
@@ -208,7 +208,7 @@ CFE_Status_t DS_TableVerifyFilter(const void *TableData);
  *
  *  \sa #DS_PacketEntry_t, #DS_FilterParms_t, #DS_TableVerifyFilter
  */
-bool DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, int32 ErrorCount);
+int32 DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, int32 ErrorCount);
 
 /**
  *  \brief Test for unused table entry
@@ -229,7 +229,7 @@ bool DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, 
  *
  *  \sa #DS_PacketEntry_t, #DS_FilterParms_t, #DS_DestFileEntry_t
  */
-bool DS_TableEntryUnused(const void *TableEntry, int32 BufferSize);
+int32 DS_TableEntryUnused(const void *TableEntry, int32 BufferSize);
 
 /**
  *  \brief Verify destination file index
@@ -262,7 +262,7 @@ bool DS_TableEntryUnused(const void *TableEntry, int32 BufferSize);
  *
  *  \sa #DS_PacketEntry_t, #DS_FilterParms_t, #DS_DestFileEntry_t
  */
-bool DS_TableVerifyFileIndex(uint16 FileTableIndex);
+int32 DS_TableVerifyFileIndex(uint16 FileTableIndex);
 
 /**
  *  \brief Verify packet filter parameters
@@ -286,7 +286,7 @@ bool DS_TableVerifyFileIndex(uint16 FileTableIndex);
  *
  *  \sa #DS_TableVerifyType, #DS_TableVerifyState, #DS_DestFileEntry_t
  */
-bool DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorithm_O);
+int32 DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorithm_O);
 
 /**
  *  \brief Verify packet filter type or filename type
@@ -311,7 +311,7 @@ bool DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorith
  *
  *  \sa #DS_TableVerifyState, #DS_TableVerifySize, #DS_DestFileEntry_t
  */
-bool DS_TableVerifyType(uint16 TimeVsCount);
+int32 DS_TableVerifyType(uint16 TimeVsCount);
 
 /**
  *  \brief Verify application or destination file enable/disable state
@@ -333,7 +333,7 @@ bool DS_TableVerifyType(uint16 TimeVsCount);
  *
  *  \sa #DS_TableVerifySize, #DS_TableVerifyAge, #DS_DestFileEntry_t
  */
-bool DS_TableVerifyState(uint16 EnableState);
+int32 DS_TableVerifyState(uint16 EnableState);
 
 /**
  *  \brief Verify destination file max size limit
@@ -354,7 +354,7 @@ bool DS_TableVerifyState(uint16 EnableState);
  *
  *  \sa #DS_TableVerifyAge, #DS_TableVerifyCount, #DS_DestFileEntry_t
  */
-bool DS_TableVerifySize(uint32 MaxFileSize);
+int32 DS_TableVerifySize(uint32 MaxFileSize);
 
 /**
  *  \brief Verify destination file max age limit
@@ -375,7 +375,7 @@ bool DS_TableVerifySize(uint32 MaxFileSize);
  *
  *  \sa #DS_TableVerifySize, #DS_TableVerifyCount, #DS_DestFileEntry_t
  */
-bool DS_TableVerifyAge(uint32 MaxFileAge);
+int32 DS_TableVerifyAge(uint32 MaxFileAge);
 
 /**
  *  \brief Verify destination file sequence count
@@ -396,7 +396,7 @@ bool DS_TableVerifyAge(uint32 MaxFileAge);
  *
  *  \sa #DS_TableVerifySize, #DS_TableVerifyAge, #DS_DestFileEntry_t
  */
-bool DS_TableVerifyCount(uint32 SequenceCount);
+int32 DS_TableVerifyCount(uint32 SequenceCount);
 
 /**
  *  \brief Subscribe to packet filter table packets
