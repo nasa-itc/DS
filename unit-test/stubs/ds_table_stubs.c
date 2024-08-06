@@ -73,16 +73,16 @@ void DS_TableCreateHash(void)
  * Generated stub function for DS_TableEntryUnused()
  * ----------------------------------------------------
  */
-bool DS_TableEntryUnused(const void *TableEntry, int32 BufferSize)
+int32 DS_TableEntryUnused(const void *TableEntry, int32 BufferSize)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableEntryUnused, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableEntryUnused, int32);
 
     UT_GenStub_AddParam(DS_TableEntryUnused, const void *, TableEntry);
     UT_GenStub_AddParam(DS_TableEntryUnused, int32, BufferSize);
 
     UT_GenStub_Execute(DS_TableEntryUnused, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableEntryUnused, bool);
+    return UT_GenStub_GetReturnValue(DS_TableEntryUnused, int32);
 }
 
 /*
@@ -191,15 +191,15 @@ void DS_TableUpdateCDS(void)
  * Generated stub function for DS_TableVerifyAge()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyAge(uint32 MaxFileAge)
+int32 DS_TableVerifyAge(uint32 MaxFileAge)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyAge, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyAge, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyAge, uint32, MaxFileAge);
 
     UT_GenStub_Execute(DS_TableVerifyAge, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyAge, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyAge, int32);
 }
 
 /*
@@ -207,15 +207,15 @@ bool DS_TableVerifyAge(uint32 MaxFileAge)
  * Generated stub function for DS_TableVerifyCount()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyCount(uint32 SequenceCount)
+int32 DS_TableVerifyCount(uint32 SequenceCount)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyCount, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyCount, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyCount, uint32, SequenceCount);
 
     UT_GenStub_Execute(DS_TableVerifyCount, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyCount, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyCount, int32);
 }
 
 /*
@@ -239,9 +239,9 @@ CFE_Status_t DS_TableVerifyDestFile(const void *TableData)
  * Generated stub function for DS_TableVerifyDestFileEntry()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableIndex, int32 ErrorCount)
+int32 DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableIndex, int32 ErrorCount)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyDestFileEntry, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyDestFileEntry, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyDestFileEntry, DS_DestFileEntry_t *, DestFileEntry);
     UT_GenStub_AddParam(DS_TableVerifyDestFileEntry, uint8, TableIndex);
@@ -249,7 +249,7 @@ bool DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableI
 
     UT_GenStub_Execute(DS_TableVerifyDestFileEntry, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyDestFileEntry, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyDestFileEntry, int32);
 }
 
 /*
@@ -257,15 +257,15 @@ bool DS_TableVerifyDestFileEntry(DS_DestFileEntry_t *DestFileEntry, uint8 TableI
  * Generated stub function for DS_TableVerifyFileIndex()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyFileIndex(uint16 FileTableIndex)
+int32 DS_TableVerifyFileIndex(uint16 FileTableIndex)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyFileIndex, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyFileIndex, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyFileIndex, uint16, FileTableIndex);
 
     UT_GenStub_Execute(DS_TableVerifyFileIndex, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyFileIndex, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyFileIndex, int32);
 }
 
 /*
@@ -289,9 +289,9 @@ CFE_Status_t DS_TableVerifyFilter(const void *TableData)
  * Generated stub function for DS_TableVerifyFilterEntry()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, int32 ErrorCount)
+int32 DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, int32 ErrorCount)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyFilterEntry, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyFilterEntry, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyFilterEntry, DS_PacketEntry_t *, PacketEntry);
     UT_GenStub_AddParam(DS_TableVerifyFilterEntry, int32, TableIndex);
@@ -299,7 +299,7 @@ bool DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, 
 
     UT_GenStub_Execute(DS_TableVerifyFilterEntry, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyFilterEntry, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyFilterEntry, int32);
 }
 
 /*
@@ -307,9 +307,9 @@ bool DS_TableVerifyFilterEntry(DS_PacketEntry_t *PacketEntry, int32 TableIndex, 
  * Generated stub function for DS_TableVerifyParms()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorithm_O)
+int32 DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorithm_O)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyParms, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyParms, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyParms, uint16, Algorithm_N);
     UT_GenStub_AddParam(DS_TableVerifyParms, uint16, Algorithm_X);
@@ -317,7 +317,7 @@ bool DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorith
 
     UT_GenStub_Execute(DS_TableVerifyParms, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyParms, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyParms, int32);
 }
 
 /*
@@ -325,15 +325,15 @@ bool DS_TableVerifyParms(uint16 Algorithm_N, uint16 Algorithm_X, uint16 Algorith
  * Generated stub function for DS_TableVerifySize()
  * ----------------------------------------------------
  */
-bool DS_TableVerifySize(uint32 MaxFileSize)
+int32 DS_TableVerifySize(uint32 MaxFileSize)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifySize, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifySize, int32);
 
     UT_GenStub_AddParam(DS_TableVerifySize, uint32, MaxFileSize);
 
     UT_GenStub_Execute(DS_TableVerifySize, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifySize, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifySize, int32);
 }
 
 /*
@@ -341,15 +341,15 @@ bool DS_TableVerifySize(uint32 MaxFileSize)
  * Generated stub function for DS_TableVerifyState()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyState(uint16 EnableState)
+int32 DS_TableVerifyState(uint16 EnableState)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyState, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyState, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyState, uint16, EnableState);
 
     UT_GenStub_Execute(DS_TableVerifyState, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyState, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyState, int32);
 }
 
 /*
@@ -357,13 +357,13 @@ bool DS_TableVerifyState(uint16 EnableState)
  * Generated stub function for DS_TableVerifyType()
  * ----------------------------------------------------
  */
-bool DS_TableVerifyType(uint16 TimeVsCount)
+int32 DS_TableVerifyType(uint16 TimeVsCount)
 {
-    UT_GenStub_SetupReturnBuffer(DS_TableVerifyType, bool);
+    UT_GenStub_SetupReturnBuffer(DS_TableVerifyType, int32);
 
     UT_GenStub_AddParam(DS_TableVerifyType, uint16, TimeVsCount);
 
     UT_GenStub_Execute(DS_TableVerifyType, Basic, NULL);
 
-    return UT_GenStub_GetReturnValue(DS_TableVerifyType, bool);
+    return UT_GenStub_GetReturnValue(DS_TableVerifyType, int32);
 }
