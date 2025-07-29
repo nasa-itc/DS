@@ -77,7 +77,7 @@
 
 #include <stdio.h>
 
-bool DS_VerifyLength(const CFE_SB_Buffer_t *BufPtr, size_t ExpectedLength, uint16 FailEventID, const char *CommandName)
+int32 DS_VerifyLength(const CFE_SB_Buffer_t *BufPtr, size_t ExpectedLength, uint16 FailEventID, const char *CommandName)
 {
     size_t ActualLength = 0;
 

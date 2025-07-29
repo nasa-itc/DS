@@ -35,7 +35,6 @@
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#if (DS_FILE_HEADER_TYPE == DS_FILE_HEADER_CFE)
 /**
  * \brief DS File Header (follows cFE file header at start of file)
  */
@@ -49,7 +48,6 @@ typedef struct
 
     char FileName[DS_TOTAL_FNAME_BUFSIZE]; /**< \brief On-board filename */
 } DS_FileHeader_t;
-#endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -324,7 +322,7 @@ void DS_FileTransmit(DS_AppFileStatus_t *FileStatus);
  *  \retval true  The packet should be filtered (not used)
  *  \retval false The packet should not be filtered (used)
  */
-bool DS_IsPacketFiltered(CFE_MSG_Message_t *MessagePtr, uint16 FilterType, uint16 Algorithm_N, uint16 Algorithm_X,
+int32 DS_IsPacketFiltered(CFE_MSG_Message_t *MessagePtr, uint16 FilterType, uint16 Algorithm_N, uint16 Algorithm_X,
                          uint16 Algorithm_O);
 
 #endif

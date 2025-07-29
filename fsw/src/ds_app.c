@@ -184,6 +184,7 @@ CFE_Status_t DS_AppInitialize(void)
     memset(&DS_AppData, 0, sizeof(DS_AppData));
 
     DS_AppData.AppEnableState = DS_DEF_ENABLE_STATE;
+    DS_AppData.EnableMoveFiles = DS_MOVE_FILES;
 
     /*
     ** Mark files as closed
@@ -357,15 +358,15 @@ void DS_AppSendHkCmd(void)
         Status = CFE_TBL_GetInfo(&FilterTblInfo, FilterTblName);
         if (Status == CFE_SUCCESS)
         {
-            strncpy(PayloadPtr->FilterTblFilename, FilterTblInfo.LastFileLoaded, OS_MAX_PATH_LEN - 1);
-            PayloadPtr->FilterTblFilename[OS_MAX_PATH_LEN - 1] = '\0';
+            snprintf(PayloadPtr->FilterTblFilename, OS_MAX_PATH_LEN, "%s", FilterTblInfo.LastFileLoaded);
         }
         else
         {
             /* If the filter table name is invalid, send an event and erase any
              * stale/misleading filename from the HK packet */
             CFE_EVS_SendEvent(DS_APPHK_FILTER_TBL_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "Invalid filter tbl name in DS_AppSendHkCmd. Name=%s, Err=0x%08X", FilterTblName, Status);
+                              "Invalid filter tbl name in DS_AppSendHkCmd. Name=%s, Err=0x%08X", FilterTblName,
+                              (unsigned int)Status);
 
             memset(PayloadPtr->FilterTblFilename, 0, sizeof(PayloadPtr->FilterTblFilename));
         }
